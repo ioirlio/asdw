@@ -21,21 +21,25 @@ def get_val_files():
 
 #rrc = transforms.RandomResizedCrop(224)
 import torchvision.transforms.functional as F
-def image_load(fn):
+def image_load(fn, resize=256, crop=224):
   img = Image.open(fn).convert('RGB')
-  img = F.resize(img, 256, Image.BILINEAR)
-  img = F.center_crop(img, 224)
+  img = F.resize(img, resize, Image.BILINEAR)
+  img = F.center_crop(img, crop)
   ret = np.array(img)
   return ret
 
 def iterate(bs=32, val=True, shuffle=True):
   files = get_val_files() if val else get_train_files()
+  for X,order in _iterate(files, bs, shuffle):
+    Y = [cir[files[i].split("/")[-2]] for i in order]
+    yield (X,np.array(Y))
+
+def _iterate(files, bs, shuffle, resize=256, crop=224):
   order = list(range(0, len(files)))
   if shuffle: random.shuffle(order)
   for i in range(0, len(files), bs):
-    X = [image_load(files[i]) for i in order[i:i+bs]]
-    Y = [cir[files[i].split("/")[-2]] for i in order[i:i+bs]]
-    yield (np.array(X), np.array(Y))
+    X = [image_load(files[i], resize, crop) for i in order[i:i+bs]]
+    yield (np.array(X), order)
 
 def fetch_batch(bs, val=False):
   files = get_val_files() if val else get_train_files()

@@ -45,6 +45,11 @@ class Conv2d:
   def __call__(self, x):
     return x.conv2d(self.weight, self.bias, padding=self.padding, stride=self.stride, dilation=self.dilation, groups=self.groups)
 
+class ConvTranspose2d(Conv2d):
+  def __call__(self, x):
+    # TODO: weights won't be clean in model imports from other libraries
+    return x.conv_transpose2d(self.weight.permute(1,0,2,3), self.bias, padding=self.padding, stride=self.stride, dilation=self.dilation, groups=self.groups)
+
 class Linear:
   def __init__(self, in_features, out_features, bias=True):
     self.weight = Tensor.glorot_uniform(out_features, in_features)
